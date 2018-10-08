@@ -3,7 +3,7 @@ package ch.fhnw.webfr.flashcard.domain;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(collection = "questionaires")
+@Document(collection = "questionnaires")
 public class Questionnaire {
     @Id
     private String id;
