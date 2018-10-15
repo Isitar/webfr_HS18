@@ -10,7 +10,10 @@
 
 <body>
 <section style="width: 60%; margin-left: 10em">
-    <form th:action="@{/questionnaires}" th:object="${questionnaire}" method="post">
+    <form th:action="@{/questionnaires} + '/update/' + ${questionnaire.id}" th:object="${questionnaire}" method="post">
+        <input type="hidden" name="_method" value="PUT"/>
+        <input type="hidden" id="id" th:field="*{id}">
+
         <div class="form-group row"><label class="col-md-2" for="title">Title:</label>
             <div class="col-md-10"><input type="text" id="title" class="form-control" th:field="*{title}"
                                           autofocus="autofocus"/>

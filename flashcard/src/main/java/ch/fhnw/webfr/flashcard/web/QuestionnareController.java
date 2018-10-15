@@ -5,8 +5,12 @@ import ch.fhnw.webfr.flashcard.persistence.QuestionnaireRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpSession;
+import javax.validation.Valid;
+import javax.websocket.server.PathParam;
 import java.io.IOException;
 import java.util.List;
 
@@ -17,10 +21,17 @@ public class QuestionnareController {
     @Autowired
     private QuestionnaireRepository questionnaireRepository;
 
+
     @GetMapping()
-    public String findAll(Model model) throws IOException {
+    public String findAll(Model model, @RequestParam(required = false) String errorMessage, @RequestParam(required = false) String successMessage) throws IOException {
         List<Questionnaire> questionnaires = questionnaireRepository.findAll();
         model.addAttribute ("questionnaires", questionnaires);
+        model.addAttribute("successMessage", successMessage);
+        model.addAttribute("errorMessage", errorMessage);
+
+        System.out.println("Success message: " + successMessage);
+        System.out.println("Error message: " + errorMessage);
+
         return "questionnaires/list";
         //PrintWriter writer = response.getWriter();
         //writer.append("<html><head><title>Example</title></head><body>");
@@ -47,9 +58,41 @@ public class QuestionnareController {
         return "questionnaires/create";
     }
 
+    @GetMapping("/update/{id}")
+    public String update(@PathVariable String id, Model model){
+        Questionnaire q = questionnaireRepository.findById(id).get();
+        model.addAttribute("questionnaire", q);
+        return "questionnaires/update";
+    }
+
+    @PutMapping("/update/{id}")
+    public String update(@PathVariable String id, @Valid Questionnaire questionnaire, BindingResult result, Model model){
+        if (result.hasErrors()) {
+            System.out.println("Error!");
+            return "questionnaires/create";
+        }
+        Questionnaire q = questionnaireRepository.findById(id).get();
+        q.setTitle(questionnaire.getTitle());
+        q.setDescription(questionnaire.getDescription());
+        questionnaireRepository.save(q);
+        System.out.println("new title: " + questionnaire.getTitle() + " new desc: " + questionnaire.getDescription());
+        return "redirect:/questionnaires?successMessage=Erfolgreich bearbeitet";
+    }
+
     @PostMapping()
-    public String create(Questionnaire questionnaire, Model model) throws IOException {
+    public String create(@Valid Questionnaire questionnaire, BindingResult result) throws IOException {
+        if (result.hasErrors()) {
+            System.out.println("Error!");
+            return "questionnaires/create";
+        }
         questionnaireRepository.insert(questionnaire);
-        return findAll(model);
+        return "redirect:/questionnaires?successMessage=Erfolgreich erstellt";
+    }
+
+    @DeleteMapping("delete/{id}")
+    public String delete(@PathVariable String id) {
+        questionnaireRepository.deleteById(id);
+
+        return "redirect:/questionnaires?successMessage=Erfolgreich gelöscht";
     }
 }
